@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dream Studio</title>
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzdCNjhFRSI+PHBhdGggZD0iTTIxIDYuNUExLjUgMS41IDAgMCAwIDE5LjUgNSA1IDUgMCAwIDAgMTUgMTBoLTZBNCA0IDAgMCAwIDUgMTR2My41QTEuNSAxLjUgMCAwIDAgNi41IDE5aDExYTEuNSAxLjUgMCAwIDAgMS41LTEuNUwxOSAxNC4yOHYtNS43N2wyLS4wMXptLTggN2EuNS41IDAgMCAxIC41LS41aDRhLjUuNSAwIDAgMSAwIDFoLTRhLjUuNSAwIDAgMS0uNS0uNXptLTMtM2EuNS41IDAgMCAxIC41LS41aDdhLjUuNSAwIDAgMSAwIDFoLTdhLjUuNSAwIDAgMS0uNS0uNXpNNi41IDcuNWg2LjM4YTIuNDggMi4yIDAgMCAxLS44OCAyLjEydi01LjVBNy41MSA3LjUxIDAgMCAwIDYgMTQuNThWOC41YTEgMSAwIDAgMSAuaDUiLz48L3N2Zz4=">
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code&family=Roboto+Mono:wght@400;500;700&family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: 'var(--font-sans)',
+                        mono: 'var(--font-mono)',
+                    },
+                    colors: {
+                        primary: {
+                          '100': 'var(--color-primary-100)',
+                          '200': 'var(--color-primary-200)',
+                          '300': 'var(--color-primary-300)',
+                          '400': 'var(--color-primary-400)',
+                          '500': 'var(--color-primary-500)', // base
+                          '600': 'var(--color-primary-600)',
+                          '700': 'var(--color-primary-700)',
+                          '800': 'var(--color-primary-800)',
+                          '900': 'var(--color-primary-900)',
+                        },
+                        dark: {
+                            '900': 'var(--color-dark-900)', // bg-dark
+                            '800': 'var(--color-dark-800)', // bg-dark-secondary
+                            '700': 'var(--color-dark-700)', // border-dark
+                            '600': 'var(--color-dark-600)', // border-dark-secondary
+                            '500': 'var(--color-dark-500)',
+                        },
+                        light: {
+                            '100': '#f8f9fa',
+                            '200': '#e9ecef',
+                            '300': '#dee2e6',
+                            '400': '#ced4da',
+                        }
+                    },
+                    keyframes: {
+                        'fade-in-up': {
+                           '0%': { opacity: '0', transform: 'translateY(10px)' },
+                           '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        'stagger-in': {
+                          '0%': { opacity: '0', transform: 'translateY(10px) scale(0.98)' },
+                          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+                        },
+                        'scale-in': {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        },
+                        'subtle-lift': {
+                            '0%': { transform: 'translateY(0)', boxShadow: 'var(--tw-shadow)' },
+                            '100%': { transform: 'translateY(-4px)', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'}
+                        },
+                    },
+                    animation: {
+                        'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
+                        'stagger-in': 'stagger-in 0.4s ease-out both',
+                        'scale-in': 'scale-in 0.2s ease-out forwards',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+      :root {
+        /* Default Font Families */
+        --font-sans: 'Inter', system-ui, sans-serif;
+        --font-mono: 'Fira Code', monospace;
+        
+        /* Default Theme: Dream (Purple) */
+        --color-primary-100: #e0dffd;
+        --color-primary-200: #c2bffa;
+        --color-primary-300: #a39ff8;
+        --color-primary-400: #857ff5;
+        --color-primary-500: #6a5acd;
+        --color-primary-600: #5a4cb4;
+        --color-primary-700: #4a3e9a;
+        --color-primary-800: #3a317f;
+        --color-primary-900: #2f2766;
+        --color-dark-900: #0d1117;
+        --color-dark-800: #161b22;
+        --color-dark-700: #21262d;
+        --color-dark-600: #30363d;
+        --color-dark-500: #48515a;
+        --color-primary-500-glow-start: rgba(106, 90, 205, 0.8);
+        --color-primary-500-glow-end: rgba(106, 90, 205, 0.5);
+      }
+      body {
+        background-color: var(--color-dark-900);
+        font-family: var(--font-sans);
+      }
+      /* Custom scrollbar styles */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--color-dark-800);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--color-dark-600);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-dark-500);
+      }
+       /* For animations that should only run once */
+        .animate-once {
+            animation-iteration-count: 1;
+        }
+      button, .btn {
+        transition: all 0.2s ease-in-out;
+      }
+      button:active, .btn:active {
+        transform: scale(0.98);
+        filter: brightness(0.95);
+      }
+      /* Skeleton Loader */
+      .skeleton-loader {
+        background-color: var(--color-dark-800);
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.375rem; /* rounded-md */
+      }
+      .skeleton-loader::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, var(--color-dark-700), transparent);
+        animation: shimmer 1.5s infinite;
+      }
+      @keyframes shimmer {
+        100% {
+          transform: translateX(100%);
+        }
+      }
+      /* Generic Tooltip */
+      [data-tooltip] {
+        position: relative;
+        cursor: pointer;
+      }
+      [data-tooltip]::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-8px);
+        background-color: var(--color-dark-900);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s;
+        z-index: 100;
+        border: 1px solid var(--color-dark-600);
+      }
+      [data-tooltip]:hover::after {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* Diff Viewer Styles */
+      .diff-line {
+          font-family: var(--font-mono);
+          white-space: pre;
+          padding: 0.1rem 0.5rem;
+      }
+      .diff-added {
+          background-color: rgba(16, 185, 129, 0.1);
+      }
+      .diff-added::before {
+          content: '+';
+          color: #2e7d32;
+          margin-right: 1rem;
+      }
+      .diff-deleted {
+          background-color: rgba(239, 68, 68, 0.1);
+      }
+      .diff-deleted::before {
+          content: '-';
+          color: #c62828;
+          margin-right: 1rem;
+      }
+      .diff-sbs-line {
+          display: grid;
+          grid-template-columns: 40px 1fr 40px 1fr;
+          font-family: var(--font-mono);
+          white-space: pre-wrap;
+          word-break: break-all;
+      }
+       .diff-sbs-line > div {
+          padding: 0.1rem 0.5rem;
+       }
+       .diff-sbs-num {
+          color: #8b949e;
+          text-align: right;
+          user-select: none;
+       }
+       .diff-sbs-added {
+          background-color: rgba(16, 185, 129, 0.1);
+       }
+       .diff-sbs-deleted {
+          background-color: rgba(239, 68, 68, 0.1);
+       }
+        /* react-syntax-highlighter style override */
+        pre[class*="language-"] {
+            font-family: var(--font-mono) !important;
+            background: var(--color-dark-800) !important;
+            border-radius: 0.375rem !important;
+            padding: 1rem !important;
+            border: 1px solid var(--color-dark-700) !important;
+        }
+        code[class*="language-"] {
+            font-family: var(--font-mono) !important;
+            color: #c9d1d9 !important; /* Default text color */
+        }
+        .token.comment, .token.prolog, .token.doctype, .token.cdata { color: #8b949e; }
+        .token.punctuation { color: #8b949e; }
+        .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol, .token.deleted { color: #f97583; }
+        .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted { color: #a5d6ff; }
+        .token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string { color: #79c0ff; }
+        .token.atrule, .token.attr-value, .token.keyword { color: #ff7b72; }
+        .token.function, .token.class-name { color: #d2a8ff; }
+        .token.regex, .token.important, .token.variable { color: #f0883e; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai",
+    "xterm": "https://esm.sh/xterm@^5.3.0",
+    "xterm/": "https://esm.sh/xterm@^5.3.0/",
+    "socket.io-client": "https://esm.sh/socket.io-client@^4.8.1",
+    "react": "https://esm.sh/react@^19.1.1",
+    "react/": "https://esm.sh/react@^19.1.1/",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
+    "xterm-addon-fit": "https://esm.sh/xterm-addon-fit@^0.8.0",
+    "react-markdown": "https://esm.sh/react-markdown@^9.0.1",
+    "remark-gfm": "https://esm.sh/remark-gfm@^4.0.0",
+    "diff": "https://esm.sh/diff@^5.2.0",
+    "react-syntax-highlighter": "https://esm.sh/react-syntax-highlighter@15.5.0",
+    "react-syntax-highlighter/": "https://esm.sh/react-syntax-highlighter@15.5.0/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-dark-900 font-sans">
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "name": "Dream Studio",
+  "description": "An enhanced developer toolkit featuring a secure password vault, AI assistant, integrated terminal, Android manager, static code scanner, and a powerful Sync Hub for Git and cloud services.",
+  "requestFramePermissions": []
+}
