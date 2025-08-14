@@ -1,11 +1,11 @@
 
 
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { VaultEntry } from '../types';
 import * as vaultService from '../services/vaultService';
-import { AddIcon, CopyIcon, DeleteIcon, EditIcon, EyeIcon, EyeSlashIcon, LinkIcon, LockIcon, NoteIcon, RefreshIcon, SaveIcon, SearchIcon, UserIcon, XCircleIcon, TagIcon, CheckIcon } from './Icons';
+import { AddIcon, CopyIcon, DeleteIcon, EditIcon, EyeIcon, EyeSlashIcon, LinkIcon, LockIcon, NoteIcon, RefreshIcon, SaveIcon, SearchIcon, UserIcon, XCircleIcon, TagIcon, CheckIcon, StarIcon } from './Icons';
 import { useNotification } from '../App';
+import SegmentedControl from './SegmentedControl';
 
 // --- Sub-component: Password Strength ---
 const PasswordStrength: React.FC<{ password?: string }> = ({ password = '' }) => {
@@ -45,12 +45,12 @@ const VaultForm: React.FC<{
     onCancel: () => void;
     generatedPasswordToUse: string | null;
 }> = ({ item, onSubmit, onCancel, generatedPasswordToUse }) => {
-    const [formData, setFormData] = useState<VaultEntry>({ id: '', title: '', username: '', password: '', url: '', notes: '', tags: [] });
+    const [formData, setFormData] = useState<VaultEntry>({ id: '', title: '', username: '', password: '', url: '', notes: '', tags: [], isFavorite: false });
     const [showPassword, setShowPassword] = useState(false);
     const [tagInput, setTagInput] = useState('');
 
     useEffect(() => {
-        setFormData(item || { id: '', title: '', username: '', password: '', url: '', notes: '', tags: [] });
+        setFormData(item || { id: '', title: '', username: '', password: '', url: '', notes: '', tags: [], isFavorite: false });
     }, [item]);
     
     useEffect(() => {
@@ -268,9 +268,24 @@ const PasswordManager: React.FC<{
     const [searchTerm, setSearchTerm] = useState('');
     const [generatedPasswordForForm, setGeneratedPasswordForForm] = useState<string | null>(null);
     const [activeTag, setActiveTag] = useState<string | null>(null);
+    const [filter, setFilter] = useState<'all' | 'favorites' | 'recents'>('all');
+    const [recentlyUsed, setRecentlyUsed] = useState<string[]>([]);
     const addNotification = useNotification();
 
     const isLocked = !masterKey;
+
+    useEffect(() => {
+        const savedRecents = localStorage.getItem('ds_vault_recents');
+        if (savedRecents) {
+            setRecentlyUsed(JSON.parse(savedRecents));
+        }
+    }, []);
+
+    const addRecent = (id: string) => {
+        const newRecents = [id, ...recentlyUsed.filter(r => r !== id)].slice(0, 10);
+        setRecentlyUsed(newRecents);
+        localStorage.setItem('ds_vault_recents', JSON.stringify(newRecents));
+    };
 
     const allTags = useMemo(() => {
         const tags = new Set<string>();
@@ -279,17 +294,34 @@ const PasswordManager: React.FC<{
     }, [secrets]);
 
     const filteredSecrets = useMemo(() => {
-        return secrets.filter(secret => {
-            const matchesSearch = searchTerm ?
-                secret.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                secret.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                secret.url?.toLowerCase().includes(searchTerm.toLowerCase()) : true;
+        let filtered = secrets;
 
-            const matchesTag = activeTag ? secret.tags?.includes(activeTag) : true;
-            
-            return matchesSearch && matchesTag;
-        });
-    }, [searchTerm, secrets, activeTag]);
+        // Main filter (All, Favorites, Recents)
+        if (filter === 'favorites') {
+            filtered = filtered.filter(s => s.isFavorite);
+        } else if (filter === 'recents') {
+            const recentSet = new Set(recentlyUsed);
+            filtered = filtered.filter(s => recentSet.has(s.id))
+                         .sort((a, b) => recentlyUsed.indexOf(a.id) - recentlyUsed.indexOf(b.id));
+        }
+
+        // Tag filter
+        if (activeTag) {
+            filtered = filtered.filter(s => s.tags?.includes(activeTag));
+        }
+
+        // Search term filter
+        if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            filtered = filtered.filter(secret => 
+                secret.title.toLowerCase().includes(searchLower) ||
+                secret.username.toLowerCase().includes(searchLower) ||
+                secret.url?.toLowerCase().includes(searchLower)
+            );
+        }
+        
+        return filtered;
+    }, [searchTerm, secrets, activeTag, filter, recentlyUsed]);
 
     const loadSecrets = useCallback(async (key: CryptoKey) => {
         const storedSecrets = await vaultService.listSecrets(key);
@@ -330,6 +362,14 @@ const PasswordManager: React.FC<{
         await vaultService.addSecret(masterKey, id, entryToSave);
         addNotification(`Entry "${item.title}" saved.`, 'success');
         handleCancelForm();
+        await loadSecrets(masterKey);
+    };
+
+    const handleToggleFavorite = async (item: VaultEntry) => {
+        if (!masterKey) return;
+        const updatedItem = { ...item, isFavorite: !item.isFavorite };
+        const { id, ...entryToSave } = updatedItem;
+        await vaultService.addSecret(masterKey, id, entryToSave);
         await loadSecrets(masterKey);
     };
     
@@ -406,12 +446,13 @@ const PasswordManager: React.FC<{
         </div>
     );
 };
-    const CopyButton: React.FC<{textToCopy?: string, fieldName: string}> = ({ textToCopy, fieldName }) => {
+    const CopyButton: React.FC<{textToCopy?: string, fieldName: string, onCopy: () => void}> = ({ textToCopy, fieldName, onCopy }) => {
         const [copied, setCopied] = useState(false);
         const copyToClipboard = () => { 
             if (textToCopy) {
                 navigator.clipboard.writeText(textToCopy);
                 setCopied(true);
+                onCopy();
                 setTimeout(() => setCopied(false), 2000);
             }
         };
@@ -423,7 +464,7 @@ const PasswordManager: React.FC<{
         );
     }
 
-    const VaultItemComponent: React.FC<{ item: VaultEntry; onEdit: (item: VaultEntry) => void; onDelete: (item: VaultEntry) => void; }> = ({ item, onEdit, onDelete }) => {
+    const VaultItemComponent: React.FC<{ item: VaultEntry; onEdit: (item: VaultEntry) => void; onDelete: (item: VaultEntry) => void; onToggleFavorite: (item: VaultEntry) => void; onCopy: (id: string) => void; }> = ({ item, onEdit, onDelete, onToggleFavorite, onCopy }) => {
          const [showPassword, setShowPassword] = useState(false);
          
          return (
@@ -431,6 +472,9 @@ const PasswordManager: React.FC<{
             <div className="flex justify-between items-start">
                 <h3 className="text-lg font-bold text-gray-100 flex-1 truncate">{item.title}</h3>
                 <div className="flex space-x-3 ml-4">
+                    <button onClick={() => onToggleFavorite(item)} className={`transition-colors ${item.isFavorite ? 'text-yellow-400' : 'text-gray-400 hover:text-yellow-300'}`} data-tooltip={item.isFavorite ? "Unfavorite" : "Favorite"}>
+                        <StarIcon className="w-4 h-4" filled={item.isFavorite} />
+                    </button>
                     <button onClick={() => onEdit(item)} className="text-gray-400 hover:text-primary-400" data-tooltip="Edit"><EditIcon className="w-4 h-4" /></button>
                     <button onClick={() => onDelete(item)} className="text-gray-400 hover:text-red-400" data-tooltip="Delete"><DeleteIcon className="w-4 h-4" /></button>
                 </div>
@@ -446,7 +490,7 @@ const PasswordManager: React.FC<{
                  <div className="flex items-center">
                     <UserIcon className="w-4 h-4 text-gray-500 mr-3 shrink-0" />
                     <span className="text-gray-300 font-mono flex-1 truncate">{item.username}</span>
-                    <div className="ml-2"><CopyButton textToCopy={item.username} fieldName="Username" /></div>
+                    <div className="ml-2"><CopyButton textToCopy={item.username} fieldName="Username" onCopy={() => onCopy(item.id)} /></div>
                 </div>
                 {item.password && (
                      <div className="flex items-center">
@@ -456,7 +500,7 @@ const PasswordManager: React.FC<{
                             <button onClick={() => setShowPassword(!showPassword)} className="text-gray-500 hover:text-primary-400" data-tooltip={showPassword ? "Hide password" : "Show password"}>
                                 {showPassword ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
                             </button>
-                            <CopyButton textToCopy={item.password} fieldName="Password" />
+                            <CopyButton textToCopy={item.password} fieldName="Password" onCopy={() => onCopy(item.id)} />
                         </div>
                     </div>
                 )}
@@ -489,15 +533,26 @@ const PasswordManager: React.FC<{
                 ) : (
                     <>
                     <div className="md:col-span-2 flex flex-col h-full animate-fade-in-up">
-                         <div className="flex-shrink-0 mb-4">
+                         <div className="flex-shrink-0 mb-4 space-y-3">
+                            <div className="w-full">
+                                <SegmentedControl
+                                    options={[
+                                        { id: 'all', label: 'All' },
+                                        { id: 'favorites', label: 'Favorites' },
+                                        { id: 'recents', label: 'Recent' },
+                                    ]}
+                                    value={filter}
+                                    onChange={(v) => setFilter(v as 'all' | 'favorites' | 'recents')}
+                                />
+                            </div>
                             <div className="relative">
                                 <SearchIcon className="w-5 h-5 text-gray-500 absolute top-1/2 left-3 -translate-y-1/2"/>
                                 <input type="text" placeholder={`Search ${secrets.length} entries...`} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full bg-dark-800 border border-dark-700 text-white rounded-md py-2 pl-10 pr-8 focus:outline-none focus:ring-2 focus:ring-primary-500"/>
                                 {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"><XCircleIcon className="w-5 h-5"/></button>}
                             </div>
                             {allTags.length > 0 && (
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                    <button onClick={() => setActiveTag(null)} className={`text-xs px-2 py-1 rounded-full ${!activeTag ? 'bg-primary-500 text-white font-semibold' : 'bg-dark-700 hover:bg-dark-600 text-gray-300'}`}>All</button>
+                                <div className="flex flex-wrap gap-2">
+                                    <button onClick={() => setActiveTag(null)} className={`text-xs px-2 py-1 rounded-full ${!activeTag ? 'bg-primary-500 text-white font-semibold' : 'bg-dark-700 hover:bg-dark-600 text-gray-300'}`}>All Tags</button>
                                     {allTags.map(tag => (
                                         <button key={tag} onClick={() => setActiveTag(tag)} className={`text-xs px-2 py-1 rounded-full ${activeTag === tag ? 'bg-primary-500 text-white font-semibold' : 'bg-dark-700 hover:bg-dark-600 text-gray-300'}`}>{tag}</button>
                                     ))}
@@ -507,10 +562,10 @@ const PasswordManager: React.FC<{
                         <div className="flex-1 space-y-3 overflow-y-auto pr-2">
                             {filteredSecrets.map((s, i) => 
                                 <div key={s.id} className="animate-stagger-in" style={{animationDelay: `${i * 30}ms`}}>
-                                    <VaultItemComponent item={s} onEdit={handleEdit} onDelete={handleDeleteItem} />
+                                    <VaultItemComponent item={s} onEdit={handleEdit} onDelete={handleDeleteItem} onToggleFavorite={handleToggleFavorite} onCopy={addRecent} />
                                 </div>
                             )}
-                            {filteredSecrets.length === 0 && <div className="text-center text-gray-500 py-16"><h3 className="text-lg">No entries found</h3><p className="text-sm">Try adjusting your search or selected tag.</p></div>}
+                            {filteredSecrets.length === 0 && <div className="text-center text-gray-500 py-16"><h3 className="text-lg">No entries found</h3><p className="text-sm">Try adjusting your filters.</p></div>}
                         </div>
                     </div>
                     

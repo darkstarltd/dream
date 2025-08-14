@@ -1,13 +1,11 @@
 
 
-
-
 import React, { useState, useEffect } from 'react';
 import type { View } from '../App';
 import type { SyncActivity, Plugin, SyncHubData, UserProfile } from '../types';
 import * as api from '../services/apiService';
 import * as vault from '../services/vaultService';
-import { LockIcon, SyncIcon, TerminalIcon, AndroidIcon, SparklesIcon, CommitIcon, GitPushIcon, GitPullIcon, GistIcon, DropboxIcon, CodeIcon, GitBranchIcon, PuzzleIcon, ProjectIcon, ScratchpadIcon, DiffIcon, SnippetIcon, DatabaseIcon, LogIcon } from './Icons';
+import { LockIcon, SyncIcon, TerminalIcon, AndroidIcon, SparklesIcon, CommitIcon, GitPushIcon, GitPullIcon, GistIcon, DropboxIcon, CodeIcon, GitBranchIcon, PuzzleIcon, ProjectIcon, ScratchpadIcon, DiffIcon, SnippetIcon, DatabaseIcon, LogIcon, EnvManagerIcon, ApiLabIcon, MarkdownIcon, RegexIcon, TaskRunnerIcon } from './Icons';
 import * as pluginService from '../services/pluginService';
 import { StatCardSkeleton, ActivityItemSkeleton } from './SkeletonLoader';
 
@@ -103,11 +101,16 @@ const Dashboard: React.FC<{
     const coreTools: Plugin[] = [
         { id: 'projects', name: 'Project Tracker', description: 'Organize tasks with a drag-and-drop Kanban board.', icon: <ProjectIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'snippets', name: 'Snippet Vault', description: 'Save, tag, and search your reusable code snippets.', icon: <SnippetIcon />, type: 'tool', component: React.Fragment, author: '' },
+        { id: 'markdown', name: 'Markdown Notes', description: 'Write and preview documentation, notes, and ideas.', icon: <MarkdownIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'database', name: 'Database Explorer', description: 'Browse and query your local mock databases.', icon: <DatabaseIcon />, type: 'tool', component: React.Fragment, author: '' },
+        { id: 'apilab', name: 'API Lab', description: 'Craft and send HTTP requests with a full-featured API client.', icon: <ApiLabIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'scratchpad', name: 'Code Scratchpad', description: 'Quickly write, test, and get AI explanations for code.', icon: <ScratchpadIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'diff', name: 'Diff Viewer', description: 'Compare two blocks of text or code side-by-side.', icon: <DiffIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'logs', name: 'Log Viewer', description: 'View, search, and filter real-time application logs.', icon: <LogIcon />, type: 'tool', component: React.Fragment, author: '' },
+        { id: 'regex', name: 'Regex Tester', description: 'Test and debug regular expressions in real-time.', icon: <RegexIcon />, type: 'tool', component: React.Fragment, author: '' },
+        { id: 'taskrunner', name: 'Task Runner', description: 'Define and run common scripts and build tasks.', icon: <TaskRunnerIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'passwords', name: 'Password Vault', description: 'Securely store and manage your sensitive credentials.', icon: <LockIcon />, type: 'tool', component: React.Fragment, author: '' },
+        { id: 'envmanager', name: 'Environments', description: 'Manage .env files for different project configurations.', icon: <EnvManagerIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'ai', name: 'AI Assistant', description: 'Leverage AI for code generation, explanation, and debugging.', icon: <SparklesIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'sync', name: 'Sync Hub', description: 'Manage Git, Gists, and cloud backups from one location.', icon: <SyncIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'terminal', name: 'Integrated Terminal', description: 'A full-featured terminal baked into your workspace.', icon: <TerminalIcon />, type: 'tool', component: React.Fragment, author: '' },

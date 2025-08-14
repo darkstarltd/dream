@@ -1,8 +1,10 @@
 
+
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { DeviceInfo, AndroidPackage, AndroidFile } from '../types';
 import * as api from '../services/apiService';
 import { AndroidIcon, ChipIcon, PowerIcon, PackageIcon, ScrollIcon, InfoIcon, DatabaseIcon, ServerIcon, PauseIcon, PlayIcon, ClearIcon, FolderIcon, FileIcon, ChevronRightIcon, ChevronDownIcon, SearchIcon, GitPullIcon } from './Icons';
+import SegmentedControl from './SegmentedControl';
 
 type Log = {
     id: number;
@@ -48,16 +50,6 @@ const ProgressBar: React.FC<{ value: number; total: number; label: string; icon:
         </div>
     );
 };
-
-const SegmentedControl: React.FC<{ options: { id: string; label: string }[], value: string, onChange: (value: string) => void }> = ({ options, value, onChange }) => (
-    <div className="segmented-control">
-        {options.map(opt => (
-            <button key={opt.id} onClick={() => onChange(opt.id)} className={value === opt.id ? 'active' : ''}>
-                {opt.label}
-            </button>
-        ))}
-    </div>
-);
 
 const FileTreeItem: React.FC<{ 
     node: AndroidFile; 

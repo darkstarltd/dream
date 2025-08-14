@@ -1,7 +1,5 @@
 
 
-
-
 import React, { useState, useEffect, useCallback, createContext, useContext, useRef } from 'react';
 import PasswordManager from './components/PasswordManager';
 import SyncHub from './components/SyncHub';
@@ -17,27 +15,39 @@ import DiffViewer from './components/DiffViewer';
 import Snippets from './components/Snippets';
 import DatabaseExplorer from './components/DatabaseExplorer';
 import LogViewer from './components/LogViewer';
+import EnvironmentManager from './components/EnvironmentManager';
+import ApiLab from './components/ApiLab';
+import MarkdownEditor from './components/MarkdownEditor';
+import RegexTester from './components/RegexTester';
+import TaskRunner from './components/TaskRunner';
+import LoadingScreen from './components/LoadingScreen';
 import VaultAccessModal from './components/VaultAccessModal';
 import NotificationContainer from './components/NotificationContainer';
 import CommandPalette from './components/CommandPalette';
-import { AndroidIcon, DashboardIcon, LockIcon, TerminalIcon, SparklesIcon, SettingsIcon, SyncIcon, StoreIcon, UserIcon, ProjectIcon, ScratchpadIcon, DiffIcon, SnippetIcon, DatabaseIcon, LogIcon } from './components/Icons';
+import CollapsibleNavSection from './components/CollapsibleNavSection';
+import { AndroidIcon, DashboardIcon, LockIcon, TerminalIcon, SparklesIcon, SettingsIcon, SyncIcon, StoreIcon, UserIcon, ProjectIcon, ScratchpadIcon, DiffIcon, SnippetIcon, DatabaseIcon, LogIcon, EnvManagerIcon, ApiLabIcon, MarkdownIcon, RegexIcon, TaskRunnerIcon } from './components/Icons';
 import * as pluginService from './services/pluginService';
 import * as themeService from './services/themeService';
 import type { Plugin, VaultAccessRequest, UserProfile, Theme, Notification, NotificationType, Command, AutoLockTimeout } from './types';
 
-export type View = 'dashboard' | 'passwords' | 'sync' | 'terminal' | 'android' | 'ai' | 'settings' | 'marketplace' | 'projects' | 'scratchpad' | 'diff' | 'snippets' | 'database' | 'logs' | string; // string for plugin views
+export type View = 'dashboard' | 'passwords' | 'sync' | 'terminal' | 'android' | 'ai' | 'settings' | 'marketplace' | 'projects' | 'scratchpad' | 'diff' | 'snippets' | 'database' | 'logs' | 'envmanager' | 'apilab' | 'markdown' | 'regex' | 'taskrunner' | string; // string for plugin views
 
 export const viewConfig: Record<string, { label: string; icon: React.ReactNode }> = {
     dashboard: { label: 'Dashboard', icon: <DashboardIcon className="w-5 h-5" /> },
     marketplace: { label: 'Marketplace', icon: <StoreIcon className="w-5 h-5" /> },
     projects: { label: 'Projects', icon: <ProjectIcon className="w-5 h-5" /> },
     snippets: { label: 'Snippets', icon: <SnippetIcon className="w-5 h-5" /> },
+    markdown: { label: 'Markdown Notes', icon: <MarkdownIcon className="w-5 h-5" /> },
     database: { label: 'Database', icon: <DatabaseIcon className="w-5 h-5" /> },
     scratchpad: { label: 'Scratchpad', icon: <ScratchpadIcon className="w-5 h-5" /> },
     diff: { label: 'Diff Viewer', icon: <DiffIcon className="w-5 h-5" /> },
     logs: { label: 'Log Viewer', icon: <LogIcon className="w-5 h-5" /> },
+    apilab: { label: 'API Lab', icon: <ApiLabIcon className="w-5 h-5" /> },
+    regex: { label: 'Regex Tester', icon: <RegexIcon className="w-5 h-5" /> },
+    taskrunner: { label: 'Task Runner', icon: <TaskRunnerIcon className="w-5 h-5" /> },
     sync: { label: 'Sync Hub', icon: <SyncIcon className="w-5 h-5" /> },
     passwords: { label: 'Vault', icon: <LockIcon className="w-5 h-5" /> },
+    envmanager: { label: 'Environments', icon: <EnvManagerIcon className="w-5 h-5" /> },
     terminal: { label: 'Terminal', icon: <TerminalIcon className="w-5 h-5" /> },
     android: { label: 'Android', icon: <AndroidIcon className="w-5 h-5" /> },
     ai: { label: 'AI Assistant', icon: <SparklesIcon className="w-5 h-5" /> },
@@ -75,6 +85,7 @@ const App: React.FC = () => {
 
 
     // --- UI State ---
+    const [isLoading, setIsLoading] = useState(true);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
     const [commands, setCommands] = useState<Command[]>([]);
@@ -82,6 +93,9 @@ const App: React.FC = () => {
 
 
     useEffect(() => {
+        // Mock app loading
+        setTimeout(() => setIsLoading(false), 1500);
+
         // Load state from localStorage
         const savedPlugins = localStorage.getItem('ds_installed_plugins');
         const loadedPlugins = savedPlugins ? JSON.parse(savedPlugins) : ['gemini_assistant', 'web_links_widget', 'system_monitor_widget'];
@@ -349,6 +363,16 @@ const App: React.FC = () => {
                 return <DatabaseExplorer />;
             case 'logs':
                 return <LogViewer />;
+            case 'envmanager':
+                return <EnvironmentManager />;
+            case 'apilab':
+                return <ApiLab />;
+            case 'markdown':
+                return <MarkdownEditor />;
+            case 'regex':
+                return <RegexTester />;
+            case 'taskrunner':
+                return <TaskRunner />;
             case 'settings':
                 return <Settings
                             userProfile={userProfile}
@@ -415,6 +439,10 @@ const App: React.FC = () => {
             </div>
         );
     };
+    
+    if (isLoading) {
+        return <LoadingScreen />;
+    }
 
     return (
         <NotificationContext.Provider value={addNotification}>
@@ -433,38 +461,44 @@ const App: React.FC = () => {
                         </svg>
                         <h1 className="text-xl font-bold ml-2 text-white">Dream Studio</h1>
                     </div>
-                    <nav className="flex-grow space-y-1.5">
+                    <nav className="flex-grow space-y-1.5 overflow-y-auto">
                         {/* Main Navigation */}
                         <NavItem view="dashboard" label={viewConfig.dashboard.label} icon={viewConfig.dashboard.icon} />
                         <NavItem view="marketplace" label={viewConfig.marketplace.label} icon={viewConfig.marketplace.icon} />
                         
-                        {/* Development Tools */}
-                        <div className="pt-4 pb-1.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Development</div>
-                        <NavItem view="projects" label={viewConfig.projects.label} icon={viewConfig.projects.icon} />
-                        <NavItem view="snippets" label={viewConfig.snippets.label} icon={viewConfig.snippets.icon} />
-                        <NavItem view="database" label={viewConfig.database.label} icon={viewConfig.database.icon} />
-                        <NavItem view="scratchpad" label={viewConfig.scratchpad.label} icon={viewConfig.scratchpad.icon} />
-                        <NavItem view="diff" label={viewConfig.diff.label} icon={viewConfig.diff.icon} />
-                        <NavItem view="logs" label={viewConfig.logs.label} icon={viewConfig.logs.icon} />
+                        <CollapsibleNavSection title="Development">
+                            <NavItem view="projects" label={viewConfig.projects.label} icon={viewConfig.projects.icon} />
+                            <NavItem view="snippets" label={viewConfig.snippets.label} icon={viewConfig.snippets.icon} />
+                            <NavItem view="markdown" label={viewConfig.markdown.label} icon={viewConfig.markdown.icon} />
+                            <NavItem view="database" label={viewConfig.database.label} icon={viewConfig.database.icon} />
+                            <NavItem view="scratchpad" label={viewConfig.scratchpad.label} icon={viewConfig.scratchpad.icon} />
+                            <NavItem view="diff" label={viewConfig.diff.label} icon={viewConfig.diff.icon} />
+                            <NavItem view="logs" label={viewConfig.logs.label} icon={viewConfig.logs.icon} />
+                            <NavItem view="apilab" label={viewConfig.apilab.label} icon={viewConfig.apilab.icon} />
+                            <NavItem view="regex" label={viewConfig.regex.label} icon={viewConfig.regex.icon} />
+                            <NavItem view="taskrunner" label={viewConfig.taskrunner.label} icon={viewConfig.taskrunner.icon} />
+                        </CollapsibleNavSection>
                         
-                         {/* Management */}
-                        <div className="pt-4 pb-1.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Management</div>
-                        <NavItem view="passwords" label={viewConfig.passwords.label} icon={viewConfig.passwords.icon} />
-                        <NavItem view="sync" label={viewConfig.sync.label} icon={viewConfig.sync.icon} />
+                         <CollapsibleNavSection title="Management">
+                            <NavItem view="passwords" label={viewConfig.passwords.label} icon={viewConfig.passwords.icon} />
+                            <NavItem view="envmanager" label={viewConfig.envmanager.label} icon={viewConfig.envmanager.icon} />
+                            <NavItem view="sync" label={viewConfig.sync.label} icon={viewConfig.sync.icon} />
+                        </CollapsibleNavSection>
 
                         {/* Custom Tool Plugins */}
                         {toolPlugins.length > 0 && (
-                             <div className="pt-4 pb-1.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Plugins</div>
+                             <CollapsibleNavSection title="Plugins">
+                                {toolPlugins.map(plugin => (
+                                    <NavItem key={plugin.id} view={plugin.id} label={plugin.name} icon={plugin.icon} />
+                                ))}
+                            </CollapsibleNavSection>
                         )}
-                        {toolPlugins.map(plugin => (
-                            <NavItem key={plugin.id} view={plugin.id} label={plugin.name} icon={plugin.icon} />
-                        ))}
                         
-                        {/* Integrations */}
-                        <div className="pt-4 pb-1.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Integrations</div>
-                        <NavItem view="ai" label={viewConfig.ai.label} icon={viewConfig.ai.icon} />
-                        <NavItem view="terminal" label={viewConfig.terminal.label} icon={viewConfig.terminal.icon} />
-                        <NavItem view="android" label={viewConfig.android.label} icon={viewConfig.android.icon} />
+                        <CollapsibleNavSection title="Integrations">
+                            <NavItem view="ai" label={viewConfig.ai.label} icon={viewConfig.ai.icon} />
+                            <NavItem view="terminal" label={viewConfig.terminal.label} icon={viewConfig.terminal.icon} />
+                            <NavItem view="android" label={viewConfig.android.label} icon={viewConfig.android.icon} />
+                        </CollapsibleNavSection>
                     </nav>
                     <div className="flex-shrink-0">
                         <div className="border-t border-dark-700 pt-4 mt-4">
@@ -482,7 +516,7 @@ const App: React.FC = () => {
                         </div>
                         <div className="text-xs text-gray-500 text-center mt-4">
                             <p>&copy; 2024 Darkstar Security</p>
-                            <p>Version 9.0.0 "Antares"</p>
+                            <p>Version 10.0.0 "Betelgeuse"</p>
                         </div>
                     </div>
                 </aside>

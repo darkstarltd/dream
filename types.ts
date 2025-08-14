@@ -8,6 +8,7 @@ export interface VaultEntry {
   url?: string;
   notes?: string;
   tags?: string[];
+  isFavorite?: boolean;
 }
 
 export interface GitData {
@@ -131,6 +132,85 @@ export interface LogEntry {
     level: LogLevel;
     timestamp: string;
     message: string;
+}
+
+// --- ENVIRONMENT MANAGER ---
+export interface EnvVariable {
+  id: string;
+  key: string;
+  value: string;
+  isHidden?: boolean;
+}
+
+export interface EnvFile {
+  id: string;
+  name: string;
+  variables: EnvVariable[];
+}
+
+// --- API LAB ---
+export interface ApiHeader {
+  id: string;
+  key: string;
+  value: string;
+  enabled: boolean;
+}
+
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+
+export interface TestResult {
+  name: string;
+  passed: boolean;
+}
+
+export interface ApiRequest {
+  method: HttpMethod;
+  url: string;
+  headers: ApiHeader[];
+  body: string; // JSON string
+  preRequestScript?: string;
+  testScript?: string;
+}
+
+export interface ApiResponse {
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  body: any; // Parsed JSON
+  size: number; // in bytes
+  duration: number; // in ms
+  testResults?: TestResult[];
+}
+
+export interface ApiHistoryEntry {
+  id: string;
+  request: ApiRequest;
+  timestamp: number;
+  status: number;
+}
+
+// --- MARKDOWN NOTES ---
+export interface MarkdownNote {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+// --- REGEX TESTER ---
+export interface RegexMatch {
+  match: string;
+  index: number;
+  groups: string[];
+}
+
+// --- TASK RUNNER ---
+export interface Task {
+  id: string;
+  name: string;
+  command: string;
+  envFileId: string | 'none';
 }
 
 
