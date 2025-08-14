@@ -1,8 +1,9 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
 import type { ChatMessage } from '../../types';
-import * as vaultService from '../../services/vaultService';
+import * as credentialService from '../../services/credentialService';
 import { SendIcon, SparklesIcon, UserIcon, CopyIcon, LockIcon, SaveIcon } from '../Icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -107,7 +108,7 @@ const GeminiAssistantPlugin: React.FC<GeminiAssistantPluginProps> = ({ masterKey
     useEffect(() => {
         const setupAI = async () => {
             if (masterKey && hasVaultAccess) {
-                const storedKey = await vaultService.getPluginSecret(masterKey, pluginId, 'api_key');
+                const storedKey = await credentialService.getApiKey(masterKey, pluginId);
                 if (storedKey) {
                     setApiKey(storedKey);
                     setShowKeyInput(false);
@@ -151,7 +152,7 @@ const GeminiAssistantPlugin: React.FC<GeminiAssistantPluginProps> = ({ masterKey
 
     const handleSaveApiKey = async () => {
         if (masterKey && tempApiKey) {
-            await vaultService.storePluginSecret(masterKey, pluginId, 'api_key', tempApiKey);
+            await credentialService.storeApiKey(masterKey, pluginId, tempApiKey);
             setApiKey(tempApiKey); // Trigger re-initialization
             addNotification('Gemini API Key saved successfully!', 'success');
             setShowKeyInput(false);

@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { ProjectTask, ProjectColumnId, TaskPriority } from '../types';
 import { AddIcon, DeleteIcon, ProjectIcon } from './Icons';
@@ -14,9 +15,9 @@ const columns: { id: ProjectColumnId; title: string }[] = [
 ];
 
 const priorityStyles: Record<TaskPriority, { bg: string, text: string, border: string }> = {
-    high: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500' },
-    medium: { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500' },
-    low: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500' },
+    high: { bg: 'bg-red-500/20', text: 'text-red-300', border: 'border-red-500/50' },
+    medium: { bg: 'bg-yellow-500/20', text: 'text-yellow-300', border: 'border-yellow-500/50' },
+    low: { bg: 'bg-blue-500/20', text: 'text-blue-300', border: 'border-blue-500/50' },
 };
 
 // --- Add Task Form Component ---
@@ -69,9 +70,14 @@ const TaskCard: React.FC<{ task: ProjectTask; onDelete: (id: string) => void }> 
         <div 
             draggable
             onDragStart={(e) => e.dataTransfer.setData('taskId', task.id)}
-            className={`bg-dark-800 p-3 rounded-lg border-l-4 group relative ${styles.border} cursor-grab`}
+            className={`bg-dark-800 p-3 rounded-lg border-l-4 group relative flex flex-col ${styles.border} cursor-grab`}
         >
-            <p className="text-sm text-gray-200">{task.content}</p>
+            <p className="text-sm text-gray-200 flex-grow">{task.content}</p>
+            <div className="mt-2">
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${styles.bg} ${styles.text} capitalize`}>
+                    {task.priority}
+                </span>
+            </div>
             <button onClick={() => onDelete(task.id)} className="absolute top-1 right-1 p-1 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
                 <DeleteIcon className="w-4 h-4" />
             </button>

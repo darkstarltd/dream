@@ -1,7 +1,8 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { SendIcon, SparklesIcon, UserIcon, LockIcon, SaveIcon } from '../Icons';
-import * as vaultService from '../../services/vaultService';
+import * as credentialService from '../../services/credentialService';
 import type { ChatMessage } from '../../types';
 
 interface OpenAiAssistantPluginProps {
@@ -24,7 +25,7 @@ const OpenAiAssistantPlugin: React.FC<OpenAiAssistantPluginProps> = ({ masterKey
     useEffect(() => {
         const fetchKey = async () => {
             if (masterKey && hasVaultAccess) {
-                const storedKey = await vaultService.getPluginSecret(masterKey, pluginId, 'api_key');
+                const storedKey = await credentialService.getApiKey(masterKey, pluginId);
                 setApiKey(storedKey);
                 if (!storedKey) {
                     setShowKeyInput(true);
@@ -42,7 +43,7 @@ const OpenAiAssistantPlugin: React.FC<OpenAiAssistantPluginProps> = ({ masterKey
 
     const handleSaveApiKey = async () => {
         if (masterKey && tempApiKey) {
-            await vaultService.storePluginSecret(masterKey, pluginId, 'api_key', tempApiKey);
+            await credentialService.storeApiKey(masterKey, pluginId, tempApiKey);
             setApiKey(tempApiKey);
             setShowKeyInput(false);
             setTempApiKey('');

@@ -123,6 +123,16 @@ export interface DbTable {
     rows: DbRow[];
 }
 
+// --- LOG VIEWER ---
+export type LogLevel = 'V' | 'D' | 'I' | 'W' | 'E';
+
+export interface LogEntry {
+    id: number;
+    level: LogLevel;
+    timestamp: string;
+    message: string;
+}
+
 
 // --- PLUGIN & VAULT SYSTEM ---
 

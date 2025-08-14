@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect, useCallback, createContext, useContext, useRef } from 'react';
 import PasswordManager from './components/PasswordManager';
 import SyncHub from './components/SyncHub';
@@ -15,15 +16,16 @@ import Scratchpad from './components/Scratchpad';
 import DiffViewer from './components/DiffViewer';
 import Snippets from './components/Snippets';
 import DatabaseExplorer from './components/DatabaseExplorer';
+import LogViewer from './components/LogViewer';
 import VaultAccessModal from './components/VaultAccessModal';
 import NotificationContainer from './components/NotificationContainer';
 import CommandPalette from './components/CommandPalette';
-import { AndroidIcon, DashboardIcon, LockIcon, TerminalIcon, SparklesIcon, SettingsIcon, SyncIcon, StoreIcon, UserIcon, ProjectIcon, ScratchpadIcon, DiffIcon, SnippetIcon, DatabaseIcon } from './components/Icons';
+import { AndroidIcon, DashboardIcon, LockIcon, TerminalIcon, SparklesIcon, SettingsIcon, SyncIcon, StoreIcon, UserIcon, ProjectIcon, ScratchpadIcon, DiffIcon, SnippetIcon, DatabaseIcon, LogIcon } from './components/Icons';
 import * as pluginService from './services/pluginService';
 import * as themeService from './services/themeService';
 import type { Plugin, VaultAccessRequest, UserProfile, Theme, Notification, NotificationType, Command, AutoLockTimeout } from './types';
 
-export type View = 'dashboard' | 'passwords' | 'sync' | 'terminal' | 'android' | 'ai' | 'settings' | 'marketplace' | 'projects' | 'scratchpad' | 'diff' | 'snippets' | 'database' | string; // string for plugin views
+export type View = 'dashboard' | 'passwords' | 'sync' | 'terminal' | 'android' | 'ai' | 'settings' | 'marketplace' | 'projects' | 'scratchpad' | 'diff' | 'snippets' | 'database' | 'logs' | string; // string for plugin views
 
 export const viewConfig: Record<string, { label: string; icon: React.ReactNode }> = {
     dashboard: { label: 'Dashboard', icon: <DashboardIcon className="w-5 h-5" /> },
@@ -33,6 +35,7 @@ export const viewConfig: Record<string, { label: string; icon: React.ReactNode }
     database: { label: 'Database', icon: <DatabaseIcon className="w-5 h-5" /> },
     scratchpad: { label: 'Scratchpad', icon: <ScratchpadIcon className="w-5 h-5" /> },
     diff: { label: 'Diff Viewer', icon: <DiffIcon className="w-5 h-5" /> },
+    logs: { label: 'Log Viewer', icon: <LogIcon className="w-5 h-5" /> },
     sync: { label: 'Sync Hub', icon: <SyncIcon className="w-5 h-5" /> },
     passwords: { label: 'Vault', icon: <LockIcon className="w-5 h-5" /> },
     terminal: { label: 'Terminal', icon: <TerminalIcon className="w-5 h-5" /> },
@@ -344,6 +347,8 @@ const App: React.FC = () => {
                         />;
             case 'database':
                 return <DatabaseExplorer />;
+            case 'logs':
+                return <LogViewer />;
             case 'settings':
                 return <Settings
                             userProfile={userProfile}
@@ -440,6 +445,7 @@ const App: React.FC = () => {
                         <NavItem view="database" label={viewConfig.database.label} icon={viewConfig.database.icon} />
                         <NavItem view="scratchpad" label={viewConfig.scratchpad.label} icon={viewConfig.scratchpad.icon} />
                         <NavItem view="diff" label={viewConfig.diff.label} icon={viewConfig.diff.icon} />
+                        <NavItem view="logs" label={viewConfig.logs.label} icon={viewConfig.logs.icon} />
                         
                          {/* Management */}
                         <div className="pt-4 pb-1.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Management</div>

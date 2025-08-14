@@ -1,12 +1,13 @@
 
 
 
+
 import React, { useState, useEffect } from 'react';
 import type { View } from '../App';
 import type { SyncActivity, Plugin, SyncHubData, UserProfile } from '../types';
 import * as api from '../services/apiService';
 import * as vault from '../services/vaultService';
-import { LockIcon, SyncIcon, TerminalIcon, AndroidIcon, SparklesIcon, CommitIcon, GitPushIcon, GitPullIcon, GistIcon, DropboxIcon, CodeIcon, GitBranchIcon, PuzzleIcon, ProjectIcon, ScratchpadIcon, DiffIcon, SnippetIcon, DatabaseIcon } from './Icons';
+import { LockIcon, SyncIcon, TerminalIcon, AndroidIcon, SparklesIcon, CommitIcon, GitPushIcon, GitPullIcon, GistIcon, DropboxIcon, CodeIcon, GitBranchIcon, PuzzleIcon, ProjectIcon, ScratchpadIcon, DiffIcon, SnippetIcon, DatabaseIcon, LogIcon } from './Icons';
 import * as pluginService from '../services/pluginService';
 import { StatCardSkeleton, ActivityItemSkeleton } from './SkeletonLoader';
 
@@ -105,6 +106,7 @@ const Dashboard: React.FC<{
         { id: 'database', name: 'Database Explorer', description: 'Browse and query your local mock databases.', icon: <DatabaseIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'scratchpad', name: 'Code Scratchpad', description: 'Quickly write, test, and get AI explanations for code.', icon: <ScratchpadIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'diff', name: 'Diff Viewer', description: 'Compare two blocks of text or code side-by-side.', icon: <DiffIcon />, type: 'tool', component: React.Fragment, author: '' },
+        { id: 'logs', name: 'Log Viewer', description: 'View, search, and filter real-time application logs.', icon: <LogIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'passwords', name: 'Password Vault', description: 'Securely store and manage your sensitive credentials.', icon: <LockIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'ai', name: 'AI Assistant', description: 'Leverage AI for code generation, explanation, and debugging.', icon: <SparklesIcon />, type: 'tool', component: React.Fragment, author: '' },
         { id: 'sync', name: 'Sync Hub', description: 'Manage Git, Gists, and cloud backups from one location.', icon: <SyncIcon />, type: 'tool', component: React.Fragment, author: '' },

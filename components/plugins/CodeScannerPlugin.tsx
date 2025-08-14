@@ -1,9 +1,9 @@
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { CodeIssue } from '../../types';
 import * as api from '../../services/apiService';
-import * as vaultService from '../../services/vaultService';
+import * as credentialService from '../../services/credentialService';
 import { CodeIcon, ExclamationIcon, InfoIcon, CheckIcon, SparklesIcon, LockIcon, SaveIcon } from '../Icons';
 import { GoogleGenAI } from '@google/genai';
 import { useNotification } from '../../App';
@@ -50,6 +50,9 @@ export default DataFetcher;`);
     const [fixingIssueId, setFixingIssueId] = useState<string | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
     const addNotification = useNotification();
+    const [lineCount, setLineCount] = useState(code.split('\n').length);
+    const lineNumbersRef = useRef<HTMLPreElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // State for API key management
     const [apiKey, setApiKey] = useState<string | null>(null);
@@ -57,9 +60,13 @@ export default DataFetcher;`);
     const [tempApiKey, setTempApiKey] = useState('');
 
     useEffect(() => {
+        setLineCount(code.split('\n').length);
+    }, [code]);
+
+    useEffect(() => {
         const fetchKey = async () => {
             if (masterKey && hasVaultAccess) {
-                const storedKey = await vaultService.getPluginSecret(masterKey, pluginId, 'api_key');
+                const storedKey = await credentialService.getApiKey(masterKey, pluginId);
                 setApiKey(storedKey);
                 if (!storedKey) {
                     setShowKeyInput(true);
@@ -77,7 +84,7 @@ export default DataFetcher;`);
 
     const handleSaveApiKey = async () => {
         if (masterKey && tempApiKey) {
-            await vaultService.storePluginSecret(masterKey, pluginId, 'api_key', tempApiKey);
+            await credentialService.storeApiKey(masterKey, pluginId, tempApiKey);
             setApiKey(tempApiKey);
             setShowKeyInput(false);
             setTempApiKey('');
@@ -147,6 +154,27 @@ ${code}`;
             default: return { borderColor: '#22c55e', icon: <CheckIcon className="w-5 h-5 text-green-500" /> };
         }
     };
+
+    const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+        if (lineNumbersRef.current) {
+            lineNumbersRef.current.scrollTop = e.currentTarget.scrollTop;
+        }
+    };
+
+    const handleIssueClick = (line: number) => {
+        if (textareaRef.current) {
+            const lineHeight = parseFloat(getComputedStyle(textareaRef.current).lineHeight);
+            textareaRef.current.scrollTop = (line - 3) * lineHeight; // scroll to a bit above the line
+            textareaRef.current.focus();
+        }
+    };
+    
+    const issueSummary = useMemo(() => {
+        return issues.reduce((acc, issue) => {
+            acc[issue.severity] = (acc[issue.severity] || 0) + 1;
+            return acc;
+        }, {} as Record<CodeIssue['severity'], number>);
+    }, [issues]);
     
     // Render states for vault/key management
     if (!masterKey) return <div className="p-6 text-center text-gray-400">Unlock your vault to use the Code Scanner.</div>;
@@ -180,8 +208,21 @@ ${code}`;
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
                 <div className="bg-dark-800 border border-dark-700 rounded-lg p-4 flex flex-col">
                     <h3 className="text-lg font-bold text-gray-200 mb-2 flex-shrink-0">Code to Scan</h3>
-                    <div className="flex-1 min-h-0">
-                        <textarea value={code} onChange={(e) => setCode(e.target.value)} placeholder="Paste your code here..." className="w-full h-full bg-dark-900 border border-dark-600 rounded-md p-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" spellCheck="false" />
+                    <div className="flex-1 min-h-0 bg-dark-900 border border-dark-600 rounded-md overflow-hidden">
+                       <div className="code-editor-wrapper">
+                            <pre ref={lineNumbersRef} className="line-numbers">
+                                {Array.from({ length: lineCount }, (_, i) => i + 1).join('\n')}
+                            </pre>
+                            <textarea 
+                                ref={textareaRef}
+                                value={code} 
+                                onChange={(e) => setCode(e.target.value)} 
+                                onScroll={handleScroll}
+                                placeholder="Paste your code here..." 
+                                className="code-editor-textarea w-full h-full font-mono text-sm resize-none focus:outline-none" 
+                                spellCheck="false" 
+                            />
+                       </div>
                     </div>
                     <button onClick={handleScan} disabled={isLoading || !code} className="mt-4 w-full bg-primary-500 hover:bg-primary-600 text-white font-bold py-2 px-4 rounded-md transition text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
                         {isLoading ? 'Scanning...' : 'Scan Code'}
@@ -190,13 +231,24 @@ ${code}`;
                 <div className="bg-dark-800 border border-dark-700 rounded-lg p-4 flex flex-col min-h-0">
                     <h3 className="text-lg font-bold text-gray-200 mb-2 flex-shrink-0">Scan Results</h3>
                     {apiError && (<div className="bg-red-500/10 text-red-400 text-xs p-2 rounded-md mb-2 border border-red-500/20">{apiError}</div>)}
+                    
+                     {issues.length > 0 && (
+                        <div className="flex-shrink-0 flex items-center space-x-4 mb-2 p-2 bg-dark-700/50 rounded-md text-xs">
+                           <span className="font-bold text-gray-300">Summary:</span>
+                           {issueSummary.Critical > 0 && <span className="text-red-400">{issueSummary.Critical} Critical</span>}
+                           {issueSummary.Warning > 0 && <span className="text-yellow-400">{issueSummary.Warning} Warning(s)</span>}
+                           {issueSummary.Info > 0 && <span className="text-blue-400">{issueSummary.Info} Info</span>}
+                           {issues.every(i => i.severity !== 'Critical' && i.severity !== 'Warning') && <span className="text-green-400">No major issues found</span>}
+                        </div>
+                     )}
+
                     <div className="flex-1 overflow-y-auto pr-2 space-y-3">
                         {issues.length > 0 ? (
                             issues.map(issue => {
                                 const { borderColor, icon } = getSeverityStyles(issue.severity);
                                 const isFixingThis = fixingIssueId === issue.id;
                                 return (
-                                <div key={issue.id} className="border-l-4 p-3 bg-dark-900/50 rounded" style={{ borderColor }}>
+                                <div key={issue.id} onClick={() => handleIssueClick(issue.line)} className="border-l-4 p-3 bg-dark-900/50 rounded cursor-pointer hover:bg-dark-700" style={{ borderColor }}>
                                     <div className="flex items-start">
                                         <span className="mr-3 mt-0.5">{icon}</span>
                                         <div>
@@ -204,7 +256,7 @@ ${code}`;
                                             <p className="text-sm text-gray-400 mt-1">{issue.description}</p>
                                             <p className="text-sm text-gray-300 mt-2 font-mono bg-dark-700/50 p-2 rounded"><span className="text-green-400">Suggestion:</span> {issue.suggestion}</p>
                                             {issue.severity !== 'Info' && (
-                                                <button onClick={() => handleFixWithAI(issue)} disabled={fixingIssueId !== null || !apiKey} className="mt-3 text-sm bg-primary-500/10 hover:bg-primary-500/20 text-primary-300 font-semibold py-1.5 px-3 rounded-md transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" title={!apiKey ? "Gemini API Key is missing" : ""}>
+                                                <button onClick={(e) => { e.stopPropagation(); handleFixWithAI(issue); }} disabled={fixingIssueId !== null || !apiKey} className="mt-3 text-sm bg-primary-500/10 hover:bg-primary-500/20 text-primary-300 font-semibold py-1.5 px-3 rounded-md transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" title={!apiKey ? "Gemini API Key is missing" : ""}>
                                                     {isFixingThis ? (<span className="animate-spin h-4 w-4 border-2 border-primary-300 border-t-transparent rounded-full"></span>) : (<SparklesIcon className="w-4 h-4" />)}
                                                     <span>{isFixingThis ? 'Fixing...' : 'Fix with AI'}</span>
                                                 </button>
